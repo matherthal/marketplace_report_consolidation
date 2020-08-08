@@ -110,3 +110,4 @@ reports/
 backup/
 
 **/*.zip
+.vscode/
