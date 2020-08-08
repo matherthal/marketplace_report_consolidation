@@ -21,30 +21,50 @@ _MARKETPLACE_SERVICES = {
     'b2w': b2w_service
 }
 
-def main(marketplace=None, report_date=None):
-    _LOGGER.info(f'CONSOLIDAÇÃO DE {marketplace} REFERENTE À {report_date}')
+def get_max_date_folder(report_path):
+    report_date = None
 
+    for date_folder in report_path.glob('./*'):
+        # Update report_date folder if it's the first one found or it's a bigger date
+        if date_folder.is_dir() and (report_date is None or date_folder > report_date):
+            report_date = date_folder
+    
+
+def main(marketplace=None, report_date=None):
     marketplace = marketplace.lower()
 
-    report_path = Path(__file__).parent / 'reports' / marketplace / report_date
+    report_path = Path(__file__).parent / 'reports' / marketplace
+    if report_date is None:
+        report_date = get_max_date_folder(report_path)
+    report_path = report_path / report_date
+    
+    _LOGGER.info(f'CONSOLIDAÇÃO DE {marketplace} REFERENTE À {report_date}')
 
+    _LOGGER.info('OBTENDO ARQUIVOS FUP')
     fup_df = fup_service.get_fup_df(report_path)
     
+    _LOGGER.info('PROCESSANDO ARQUIVOS FUP')
     gp_fup_df = fup_service.process_fup_df(fup_df)
 
+    _LOGGER.info('ESTATÍSTICAS DE ARQUIVO FUP')
     fup_service.print_stats(gp_fup_df)
 
     if marketplace not in _MARKETPLACE_SERVICES:
         _LOGGER.error('MARKETPLACE DESCONHECIDO')
     mp_service = _MARKETPLACE_SERVICES[marketplace]
 
+    _LOGGER.info(f'OBTENDO ARQUIVOS {marketplace}')
     mp_df = mp_service.get_marketplace_data(report_path)
 
+    _LOGGER.info(f'PROCESSANDO ARQUIVOS {marketplace}')
     gp_mp_df = mp_service.process_report(mp_df)
 
+    _LOGGER.info(f'CONSOLIDANDO ARQUIVOS FUP E {marketplace}')
     consolidated_df = mp_service.consolidate(gp_fup_df, gp_mp_df)
     
-    report_path = report_path / 'consolidated.xlsx'
+    _LOGGER.info('EXPORTANDO ARQUIVO CONSOLIDADO PARA EXCEL COM A DATA DE HOJE')
+    now = datetime.today().strftime('%Y-%m-%d')
+    report_path = report_path / f'{now}-{marketplace}-consolidado.xlsx'
     consolidated_df.to_excel(report_path)
 
     _LOGGER.info(f'CAMINHO DO ARQUIVO CONSOLIDADO GERADO: {report_path}')
