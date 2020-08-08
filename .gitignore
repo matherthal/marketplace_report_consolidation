@@ -105,3 +105,8 @@ venv.bak/
 .mypy_cache/
 
 .idea/
+
+reports/
+backup/
+
+**/*.zip
