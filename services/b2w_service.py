@@ -133,11 +133,11 @@ def consolidate(gp_fup_df, gp_mp_df):
     # num de registros de Venda Marketplace vazio: {num_venda_marketplace_na}
     # num de registros de Venda Marketplace preenchido: {num_venda_marketplace_not_na}
     # ''')
-    consolidated_df['faltando em Filial FUP'] = consolidated_df['Cod Pedido Comprador Num'].isna()
-    consolidated_df['faltando em Extream'] = consolidated_df['Entrega'].isna()
+    # consolidated_df['faltando em Filial FUP'] = consolidated_df['Cod Pedido Comprador Num'].isna()
+    # consolidated_df['faltando em Extream'] = consolidated_df['Entrega'].isna()
     # consolidated_df.sort_values(['total igual', 'faltando em Filial FUP', 'faltando em Extream']).to_csv(PATH / 'consolidated_df.csv', sep='\t')
 
-    consolidated_df = consolidated_df.sort_values(['total igual', 'faltando em Filial FUP', 'faltando em Extream'])
+    # consolidated_df = consolidated_df.sort_values(['total igual', 'faltando em Filial FUP', 'faltando em Extream'])
     
     return consolidated_df
     

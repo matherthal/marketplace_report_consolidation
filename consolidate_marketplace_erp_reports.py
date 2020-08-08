@@ -21,6 +21,21 @@ _MARKETPLACE_SERVICES = {
     'b2w': b2w_service
 }
 
+_MONTHS = {
+    1.0: 'JANEIRO',
+    2.0: 'FEVEREIRO',
+    3.0: 'MARÇO',
+    4.0: 'ABRIL',
+    5.0: 'MAIO',
+    6.0: 'JUNHO',
+    7.0: 'JULHO',
+    8.0: 'AGOSTO',
+    9.0: 'SETEMBRO',
+    10.0: 'OUTUBRO',
+    11.0: 'NOVEMBRO',
+    12.0: 'DEZEMBRO'
+}
+
 def get_max_date_folder(report_path):
     report_date = None
 
@@ -29,6 +44,23 @@ def get_max_date_folder(report_path):
         if date_folder.is_dir() and (report_date is None or date_folder > report_date):
             report_date = date_folder
     
+def export_monthly_consolidated_files(consolidated_df, path, report_date, marketplace, 
+                                      split_discrepant=True):
+    for month in consolidated_df['Dt Abertura'].dt.month.unique():
+        month_df = consolidated_df[consolidated_df['Dt Abertura'].dt.month == month]
+
+        month_name = _MONTHS[month] if month in _MONTHS else 'ERRO'
+
+        if split_discrepant:
+            is_equal_revenue = month_df['total igual']
+
+            month_df[is_equal_revenue].to_excel(
+                path / f'{report_date}-{marketplace}-{month_name}-consolidado-IGUAL.xlsx')
+            month_df[~is_equal_revenue].to_excel(
+                path / f'{report_date}-{marketplace}-{month_name}-consolidado-DIFERENTE.xlsx')
+        else:
+            month_df.to_excel(
+                path / f'{report_date}-{marketplace}-{month_name}-consolidado.xlsx')
 
 def main(marketplace=None, report_date=None):
     marketplace = marketplace.lower()
@@ -63,9 +95,7 @@ def main(marketplace=None, report_date=None):
     consolidated_df = mp_service.consolidate(gp_fup_df, gp_mp_df)
     
     _LOGGER.info('EXPORTANDO ARQUIVO CONSOLIDADO PARA EXCEL COM A DATA DE HOJE')
-    now = datetime.today().strftime('%Y-%m-%d')
-    report_path = report_path / f'{now}-{marketplace}-consolidado.xlsx'
-    consolidated_df.to_excel(report_path)
+    export_monthly_consolidated_files(consolidated_df, report_path, marketplace)
 
     _LOGGER.info(f'CAMINHO DO ARQUIVO CONSOLIDADO GERADO: {report_path}')
     _LOGGER.info('SCRIPT FINALIZADO COM SUCESSO')
