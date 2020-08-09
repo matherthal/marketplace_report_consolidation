@@ -6,11 +6,12 @@ import sys
 import logging
 import logging.config
 import warnings
+import shutil
 
 import pandas as pd
 from pathlib import Path
 
-from services import fup_service, b2w_service
+from services import fup_service, b2w_service, carrefour_service
 
 logging.config.fileConfig('logging.conf')
 warnings.filterwarnings("ignore")
@@ -18,7 +19,8 @@ warnings.filterwarnings("ignore")
 _LOGGER = logging.getLogger()
 
 _MARKETPLACE_SERVICES = {
-    'b2w': b2w_service
+    'b2w': b2w_service,
+    'carrefour': carrefour_service
 }
 
 _MONTHS = {
@@ -41,11 +43,23 @@ def get_max_date_folder(report_path):
 
     for date_folder in report_path.glob('./*'):
         # Update report_date folder if it's the first one found or it's a bigger date
-        if date_folder.is_dir() and (report_date is None or date_folder > report_date):
-            report_date = date_folder
+        if date_folder.is_dir() and (report_date is None or date_folder.name > report_date):
+            report_date = date_folder.name
     
-def export_monthly_consolidated_files(consolidated_df, path, report_date, marketplace, 
+    return report_date
+    
+def export_monthly_consolidated_files(consolidated_df, path, marketplace, report_date, 
                                       split_discrepant=True):
+    path = path / 'resultado'
+
+    try: 
+        # path.rmdir(); 
+        shutil.rmtree(path)
+    except:
+        pass
+    finally: 
+        path.mkdir(parents=True, exist_ok=True)
+    
     for month in consolidated_df['Dt Abertura'].dt.month.unique():
         month_df = consolidated_df[consolidated_df['Dt Abertura'].dt.month == month]
 
@@ -54,13 +68,18 @@ def export_monthly_consolidated_files(consolidated_df, path, report_date, market
         if split_discrepant:
             is_equal_revenue = month_df['total igual']
 
-            month_df[is_equal_revenue].to_excel(
-                path / f'{report_date}-{marketplace}-{month_name}-consolidado-IGUAL.xlsx')
-            month_df[~is_equal_revenue].to_excel(
-                path / f'{report_date}-{marketplace}-{month_name}-consolidado-DIFERENTE.xlsx')
+            destination = path / f'{report_date}-{marketplace}-{month_name}-consolidado-IGUAL.xlsx'
+            month_df[is_equal_revenue].to_excel(destination)
+            _LOGGER.info(f'CAMINHO DO ARQUIVO CONSOLIDADO GERADO: {destination}')
+            
+            destination = \
+                path / f'{report_date}-{marketplace}-{month_name}-consolidado-DIFERENTE.xlsx'
+            month_df[~is_equal_revenue].to_excel(destination)
+            _LOGGER.info(f'CAMINHO DO ARQUIVO CONSOLIDADO GERADO: {destination}')
         else:
-            month_df.to_excel(
-                path / f'{report_date}-{marketplace}-{month_name}-consolidado.xlsx')
+            destination = path / f'{report_date}-{marketplace}-{month_name}-consolidado.xlsx'
+            month_df.to_excel(destination)
+            _LOGGER.info(f'CAMINHO DO ARQUIVO CONSOLIDADO GERADO: {destination}')
 
 def main(marketplace=None, report_date=None):
     marketplace = marketplace.lower()
@@ -69,7 +88,7 @@ def main(marketplace=None, report_date=None):
     if report_date is None:
         report_date = get_max_date_folder(report_path)
     report_path = report_path / report_date
-    
+
     _LOGGER.info(f'CONSOLIDAÇÃO DE {marketplace} REFERENTE À {report_date}')
 
     _LOGGER.info('OBTENDO ARQUIVOS FUP')
@@ -95,9 +114,8 @@ def main(marketplace=None, report_date=None):
     consolidated_df = mp_service.consolidate(gp_fup_df, gp_mp_df)
     
     _LOGGER.info('EXPORTANDO ARQUIVO CONSOLIDADO PARA EXCEL COM A DATA DE HOJE')
-    export_monthly_consolidated_files(consolidated_df, report_path, marketplace)
+    export_monthly_consolidated_files(consolidated_df, report_path, marketplace, report_date)
 
-    _LOGGER.info(f'CAMINHO DO ARQUIVO CONSOLIDADO GERADO: {report_path}')
     _LOGGER.info('SCRIPT FINALIZADO COM SUCESSO')
 
 if __name__ == "__main__":

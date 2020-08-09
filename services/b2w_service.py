@@ -8,10 +8,9 @@ _LOGGER = logging.getLogger(__file__)
 def get_marketplace_data(report_path):
     mp_df = None
     for report in (report_path / 'marketplace').glob('*.csv'):
-        if mp_df is None:
-            mp_df = pd.read_csv(report, encoding='latin1', sep=';')
-        else:
-            mp_df = pd.concat([mp_df, pd.read_csv(report, encoding='latin1', sep=';')])
+        temp_df = pd.read_csv(report, encoding='latin1', sep=';')
+        
+        mp_df = temp_df if mp_df is None else pd.concat([mp_df, temp_df])
     return mp_df
 
 def process_report(mp_df):
