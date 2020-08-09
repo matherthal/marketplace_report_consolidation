@@ -15,6 +15,8 @@ def get_fup_df(report_path, error_bad_lines=True):
             fup_df = temp_df if fup_df is None else pd.concat([fup_df, temp_df])
         except:
             _LOGGER.exception(f'ERRO AO PROCESSAR ARQUIVO: {report}')
+            if error_bad_lines:
+                raise
     return fup_df
 
 def process_fup_df(fup_df):

@@ -61,7 +61,7 @@ def consolidate(gp_fup_df, gp_mp_df):
     consolidated_df = consolidated_df[~consolidated_df['Número do Pedido'].isna()]
     # consolidated_df['total igual'] = (consolidated_df['Total com IPI'].abs() == consolidated_df['Valor do Repasse'].abs())
     consolidated_df['total igual'] = (
-        consolidated_df['Total Filial FUP'].abs() == consolidated_df['Valor do Repasse'].abs())
+        consolidated_df['Total Filial FUP'].abs() == consolidated_df['Valor da Transação'].abs())
 
     return consolidated_df
 
