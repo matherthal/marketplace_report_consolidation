@@ -1,6 +1,9 @@
+import logging
 import pandas as pd
 
 from utils import convert_currency_br_to_num
+
+_LOGGER = logging.getLogger(__file__)
 
 def get_fup_df(report_path):
     fup_df = None
@@ -67,11 +70,11 @@ def process_fup_df(fup_df):
     return gp_fup_df
 
 def print_stats(gp_fup_df):
-    print('TOTAL POR MARKETPLACE:')
-    print(gp_fup_df.groupby(['Marketplace'])[['Total com IPI', 'Frete']].sum())
+    _LOGGER.info('TOTAL POR MARKETPLACE:')
+    _LOGGER.info(gp_fup_df.groupby(['Marketplace'])[['Total com IPI', 'Frete']].sum())
 
     duplicated_codes =gp_fup_df.loc[
         gp_fup_df['Cod Pedido Comprador Num'].duplicated(), 
         'Cod Pedido Comprador Num'
     ].unique()
-    print(f'DUPLICATAS DE Cod Pedido Comprador Num: {duplicated_codes}')
+    _LOGGER.info(f'DUPLICATAS DE Cod Pedido Comprador Num: {duplicated_codes}')
