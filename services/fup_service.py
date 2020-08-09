@@ -5,13 +5,16 @@ from utils import convert_currency_br_to_num
 
 _LOGGER = logging.getLogger(__file__)
 
-def get_fup_df(report_path):
+def get_fup_df(report_path, error_bad_lines=True):
     fup_df = None
     for report in (report_path / 'fup').glob('*.csv'):
-        if fup_df is None:
-            fup_df = pd.read_csv(report, encoding='latin1', sep=';')
-        else:
-            fup_df = pd.concat([fup_df, pd.read_csv(report, encoding='latin1', sep=';')])
+        try:
+            temp_df = pd.read_csv(report, encoding='latin1', sep=';', 
+                                  error_bad_lines=bool(error_bad_lines))
+            
+            fup_df = temp_df if fup_df is None else pd.concat([fup_df, temp_df])
+        except:
+            _LOGGER.exception(f'ERRO AO PROCESSAR ARQUIVO: {report}')
     return fup_df
 
 def process_fup_df(fup_df):
