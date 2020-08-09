@@ -86,7 +86,7 @@ def main(marketplace=None, report_date=None, error_bad_lines=True):
     marketplace = marketplace.lower()
 
     report_path = Path(__file__).parent / 'reports' / marketplace
-    if report_date is None:
+    if not report_date:
         report_date = get_max_date_folder(report_path)
     report_path = report_path / report_date
 
@@ -120,4 +120,26 @@ def main(marketplace=None, report_date=None, error_bad_lines=True):
     _LOGGER.info('SCRIPT FINALIZADO COM SUCESSO')
 
 if __name__ == "__main__":
-    main(*sys.argv[1:])
+    if len(sys.argv) == 1:
+        print('Consolidação de relatórios de Marketplaces e ERP -- Menu')
+
+        options = ', '.join(_MARKETPLACE_SERVICES.keys())
+        print(f'Digite o nome do marketplace que deseja processar dentre as opçÕes ({options}):')
+        mp_selected = sys.stdin.readline().strip()
+
+        print('(OPCIONAL) Digite a pasta com a data para a qual deseja processar relatórios')
+        print('(se não digitar nada, será utilizada a última data):')
+        date_selected = sys.stdin.readline().strip()
+        
+        print('(OPCIONAL) Digite "ignorar" para ignorar linhas dos relatórios que possuem erros, ou'
+              ' apenas dê enter para prosseguir:')
+        error_bad_lines = sys.stdin.readline().strip().lower() != 'ignorar'
+        ans = 'NÃO' if error_bad_lines else ''
+        print(f'Foi escolhido {ans} IGNORAR linhas que possuam erros (por ex., número de colunas '
+              'inválido)')
+        
+        main(mp_selected, date_selected, error_bad_lines)
+
+        sys.stdin.readline()
+    else:
+        main(*sys.argv[1:])
