@@ -53,14 +53,15 @@ def export_monthly_consolidated_files(consolidated_df, path, marketplace, report
                                       split_discrepant=True):
     path = path / 'resultado'
 
+    # Clean up files destination
     try: 
-        # path.rmdir(); 
         shutil.rmtree(path)
     except:
         pass
     finally: 
         path.mkdir(parents=True, exist_ok=True)
     
+    # Breakdown data in months by the "Dt Abertura" from FUP report
     for month in consolidated_df['Dt Abertura'].dt.month.unique():
         month_df = consolidated_df[consolidated_df['Dt Abertura'].dt.month == month]
 
@@ -69,14 +70,17 @@ def export_monthly_consolidated_files(consolidated_df, path, marketplace, report
         if split_discrepant:
             is_equal_revenue = month_df['total igual']
 
-            destination = path / f'{report_date}-{marketplace}-{month_name}-consolidado-IGUAL.xlsx'
-            month_df[is_equal_revenue].to_excel(destination)
-            _LOGGER.info(f'CAMINHO DO ARQUIVO CONSOLIDADO GERADO: {destination}')
+            if sum(is_equal_revenue) > 0:
+                destination = \
+                    path / f'{report_date}-{marketplace}-{month_name}-consolidado-IGUAL.xlsx'
+                month_df[is_equal_revenue].to_excel(destination)
+                _LOGGER.info(f'CAMINHO DO ARQUIVO CONSOLIDADO GERADO: {destination}')
             
-            destination = \
-                path / f'{report_date}-{marketplace}-{month_name}-consolidado-DIFERENTE.xlsx'
-            month_df[~is_equal_revenue].to_excel(destination)
-            _LOGGER.info(f'CAMINHO DO ARQUIVO CONSOLIDADO GERADO: {destination}')
+            if sum(is_equal_revenue) < len(month_df):
+                destination = \
+                    path / f'{report_date}-{marketplace}-{month_name}-consolidado-DIFERENTE.xlsx'
+                month_df[~is_equal_revenue].to_excel(destination)
+                _LOGGER.info(f'CAMINHO DO ARQUIVO CONSOLIDADO GERADO: {destination}')
         else:
             destination = path / f'{report_date}-{marketplace}-{month_name}-consolidado.xlsx'
             month_df.to_excel(destination)
@@ -134,8 +138,8 @@ if __name__ == "__main__":
         print('(OPCIONAL) Digite "ignorar" para ignorar linhas dos relatórios que possuem erros, ou'
               ' apenas dê enter para prosseguir:')
         error_bad_lines = sys.stdin.readline().strip().lower() != 'ignorar'
-        ans = 'NÃO' if error_bad_lines else ''
-        print(f'Foi escolhido {ans} IGNORAR linhas que possuam erros (por ex., número de colunas '
+        ans = 'NÃO ' if error_bad_lines else ''
+        print(f'Foi escolhido {ans}IGNORAR linhas que possuam erros (por ex., número de colunas '
               'inválido)')
         
         main(mp_selected, date_selected, error_bad_lines)
