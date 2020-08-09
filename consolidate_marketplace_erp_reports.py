@@ -11,7 +11,7 @@ import shutil
 import pandas as pd
 from pathlib import Path
 
-from services import fup_service, b2w_service, carrefour_service
+from services import fup_service, b2w_service, carrefour_service, viavarejo_service
 
 logging.config.fileConfig('logging.conf')
 warnings.filterwarnings("ignore")
@@ -20,7 +20,8 @@ _LOGGER = logging.getLogger()
 
 _MARKETPLACE_SERVICES = {
     'b2w': b2w_service,
-    'carrefour': carrefour_service
+    'carrefour': carrefour_service,
+    'viavarejo': viavarejo_service
 }
 
 _MONTHS = {
@@ -81,7 +82,7 @@ def export_monthly_consolidated_files(consolidated_df, path, marketplace, report
             month_df.to_excel(destination)
             _LOGGER.info(f'CAMINHO DO ARQUIVO CONSOLIDADO GERADO: {destination}')
 
-def main(marketplace=None, report_date=None):
+def main(marketplace=None, report_date=None, error_bad_lines=True):
     marketplace = marketplace.lower()
 
     report_path = Path(__file__).parent / 'reports' / marketplace
@@ -92,7 +93,7 @@ def main(marketplace=None, report_date=None):
     _LOGGER.info(f'CONSOLIDAÇÃO DE {marketplace} REFERENTE À {report_date}')
 
     _LOGGER.info('OBTENDO ARQUIVOS FUP')
-    fup_df = fup_service.get_fup_df(report_path)
+    fup_df = fup_service.get_fup_df(report_path, error_bad_lines=error_bad_lines)
     
     _LOGGER.info('PROCESSANDO ARQUIVOS FUP')
     gp_fup_df = fup_service.process_fup_df(fup_df)
