@@ -11,7 +11,8 @@ import shutil
 import pandas as pd
 from pathlib import Path
 
-from services import fup_service, b2w_service, carrefour_service, viavarejo_service, colombo_service
+from services import fup_service, b2w_service, carrefour_service, viavarejo_service, \
+                     colombo_service, zoom_service
 
 logging.config.fileConfig('logging.conf')
 warnings.filterwarnings("ignore")
@@ -22,7 +23,8 @@ _MARKETPLACE_SERVICES = {
     'b2w': b2w_service,
     'carrefour': carrefour_service,
     'viavarejo': viavarejo_service,
-    'colombo': colombo_service
+    'colombo': colombo_service,
+    'zoom': zoom_service
 }
 
 _MONTHS = {

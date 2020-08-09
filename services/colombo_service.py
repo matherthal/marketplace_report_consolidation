@@ -37,22 +37,17 @@ def process_report(mp_df):
     return gp_mp_df
 
 def consolidate(gp_fup_df, gp_mp_df):
-    is_carrefour = gp_fup_df['Marketplace']=='COLOMBO'
+    is_colombo = gp_fup_df['Marketplace']=='COLOMBO'
 
     # gp_fup_df[is_carrefour].head()
     consolidated_df = pd.merge(
-        gp_fup_df[is_carrefour], 
+        gp_fup_df[is_colombo], 
         gp_mp_df, 
         how='outer', 
         left_on='Cod Pedido Comprador Num', 
         right_on='Número da Entrega'
     )
-    # len(consolidated_df['Cod Pedido Comprador Num'].unique())
-    # len(gp_fup_df['Cod Pedido Comprador Num'].unique())
-    # len(filial_vendas_df['Cod Pedido Comprador Num'].unique())
-    # len(gp_mp_df['Cod pedido'].unique())
-    # len(mp_df['Cod pedido'].unique())
-    # len(consolidated_df['Cod pedido'].unique())
+    
     consolidated_df['Venda Marketplace'] = pd.to_numeric(consolidated_df['Venda Marketplace'])
 
     consolidated_df[
@@ -60,22 +55,6 @@ def consolidate(gp_fup_df, gp_mp_df):
         & (~ consolidated_df['Número da Entrega'].isna())
     ]
     consolidated_df['total igual'] = \
-        ( consolidated_df['total'] == consolidated_df['Venda Marketplace'])
-
-    # consolidated_df['faltando em Filial FUP'] = consolidated_df['Cod Pedido Comprador Num'].isna()
-    # consolidated_df['faltando em carrefour'] = consolidated_df['Cod pedido'].isna()
-    # consolidated_df.sum()
-    # consolidated_df.columns
-    # consolidated_df['Marketplace'] = consolidated_df['Marketplace'].fillna('CARREFOUR')
-    # consolidated_df.groupby('Marketplace')[[
-    #     'Cod Pedido Comprador', 'Total com IPI', 'Frete', 'Total Filial FUP', 
-    #     'Valor do envio do pedido', 'Venda Marketplace', 
-    #     'total e frete corretos', 
-    #     'faltando em Filial FUP', 'faltando em carrefour']].sum()
-
-    # consolidated_df[['carrefour-Venda Marketplace', 'Marketplace']].sum()
-    # .groupby('Marketplace').sum()
-
-    # consolidated_df.groupby('Marketplace').sum()
+        (consolidated_df['Total Filial FUP'] == consolidated_df['total'])
 
     return consolidated_df
